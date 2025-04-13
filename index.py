@@ -9,6 +9,7 @@
 
 
 # task3: Track individual persons in the video, display prediction on window https://docs.ultralytics.com/modes/track/#persisting-tracks-loop
+
 from ultralytics import YOLO
 from collections import defaultdict
 import numpy as np
@@ -16,18 +17,46 @@ import cv2
 vid = 'vid.mp4'
 model = YOLO("yolov8s.pt")  # pretrained model
 
+# use open cv frame by frame as input for yolov8
 
-def object_detection_all_clases(vid, model):
 
-    results = model(source=vid, show=True, conf=0.4)
+def object_detection_all_clases(vid, model):  # use predic
+
+    # used model.predict to to "predict the video"
+    results = model.predict(source=vid, conf=0.4, device='cpu')
+    # use open cv to display the results
+    frame_count = 0
+    for result in results:
+        # access the each image plot it first
+        annotated_frame = result.plot()
+        frame_count = frame_count+1
+        print(f"frame number : {frame_count}")
+        cv2.imshow('object_detection', annotated_frame)
+        cv2.waitKey(1000)
+
+        # tried doing directly cv2.imshow(result) didnt work peraphs its not a numpy array
+cv2.destroyAllWindows()
 
 
 def object_detection_person(vid, model):
 
-    results = model(source=vid, show=True, conf=0.4, classes=[0])
+    # used model.predict to to "predict the video"
+    results = model.predict(source=vid, conf=0.4, device='cpu', classes=[0])
+    # use open cv to display the results
+    frame_count = 0
+    for result in results:
+        # access the each image plot it first
+        annotated_frame = result.plot()
+        frame_count = frame_count+1
+        print(f"frame number : {frame_count}")
+        cv2.imshow('object_detection', annotated_frame)
+        cv2.waitKey(1000)
+
+        # tried doing directly cv2.imshow(result) didnt work peraphs its not a numpy array
+cv2.destroyAllWindows()
 
 
-def persistent_tracking(model, vid):
+def persistent_tracking(vid, model):
     captured_vid = cv2.VideoCapture(vid)  # capturing video
     # storing the track history
     track_history = defaultdict(lambda: [])
@@ -47,7 +76,7 @@ def persistent_tracking(model, vid):
                 x, y, w, h = box
                 track = track_history[track_id]
                 track.append((float(x), float(y)))  # x, y center point
-                if len(track) > 30:  # retain 30 tracks for 30 frames
+                if len(track) > 40:  # retain 30 tracks for 30 frames
                     track.pop(0)
 
                 # Draw the tracking lines
@@ -62,4 +91,4 @@ def persistent_tracking(model, vid):
             break
 
 
-persistent_tracking(model, vid)
+object_detection_person(vid, model)
